@@ -1,0 +1,16 @@
+{
+  "repo": "GRAMMY",
+  "role": "child_continuity",
+  "description": "Grammy continuity space",
+  "authority": false,
+  "public_safe_only": true,
+  "links": {
+    "living_family_ledger": "https://github.com/jsonwisdom/COMPUTERWISDOM/blob/master/docs/living_family_ledger_v1.md",
+    "parent_continuity": "https://github.com/jsonwisdom/MARYDEE",
+    "family_constitution": "https://github.com/jsonwisdom/AL",
+    "protection_template": "https://github.com/jsonwisdom/JOY",
+    "coordination": "https://github.com/jsonwisdom/COMPUTERWISDOM"
+  },
+  "stewardship_only": true,
+  "status": "SEEDED_ALIGNED_WITH_LEDGER"
+}
