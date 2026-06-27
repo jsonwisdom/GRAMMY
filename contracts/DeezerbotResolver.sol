@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @notice Deezerbot v0.1 nonce + heritage gate.
-/// @dev This is a minimal routing gate for ProofOfFan payloads.
-///      Important: an EAS schema can only enforce an onchain resolver if the resolver
-///      address is attached when that schema is registered.
 contract DeezerbotResolver {
     bytes32 public immutable schemaUid;
     bytes32 public immutable heritageRoot;
@@ -16,15 +12,12 @@ contract DeezerbotResolver {
     event ProofOfFanAccepted(
         bytes32 indexed trackId,
         address indexed fan,
+        bytes32 indexed nonce,
         uint8 actionType,
-        uint256 timestamp,
-        bytes32 nonce,
-        bytes32 heritageRoot,
         uint256 weight,
         uint256 totalWeight
     );
 
-    error NotOwner();
     error InvalidFan();
     error InvalidActionType();
     error FutureTimestamp();
@@ -44,27 +37,30 @@ contract DeezerbotResolver {
         uint256 timestamp,
         bytes32 nonce,
         bytes32 suppliedHeritageRoot
-    ) external returns (uint256 weight) {
+    ) external returns (uint256 totalWeight) {
+        _validate(fan, actionType, timestamp, nonce, suppliedHeritageRoot);
+
+        uint256 weight = _weight(actionType);
+        usedNonces[nonce] = true;
+
+        totalWeight = totalWeightByTrack[trackId] + weight;
+        totalWeightByTrack[trackId] = totalWeight;
+
+        emit ProofOfFanAccepted(trackId, fan, nonce, actionType, weight, totalWeight);
+    }
+
+    function _validate(
+        address fan,
+        uint8 actionType,
+        uint256 timestamp,
+        bytes32 nonce,
+        bytes32 suppliedHeritageRoot
+    ) internal view {
         if (fan == address(0)) revert InvalidFan();
         if (actionType > 2) revert InvalidActionType();
         if (timestamp > block.timestamp) revert FutureTimestamp();
         if (suppliedHeritageRoot != heritageRoot) revert InvalidHeritageRoot();
         if (usedNonces[nonce]) revert NonceUsed();
-
-        usedNonces[nonce] = true;
-        weight = _weight(actionType);
-        totalWeightByTrack[trackId] += weight;
-
-        emit ProofOfFanAccepted(
-            trackId,
-            fan,
-            actionType,
-            timestamp,
-            nonce,
-            suppliedHeritageRoot,
-            weight,
-            totalWeightByTrack[trackId]
-        );
     }
 
     function _weight(uint8 actionType) internal pure returns (uint256) {
